@@ -15,6 +15,7 @@ public class ProductsController : ControllerBase
         _cloudinaryService = cloudinaryService;
     }
 
+    // Get all products
     [HttpGet]
     public async Task<IActionResult> GetProducts()
     {
@@ -22,6 +23,7 @@ public class ProductsController : ControllerBase
         return Ok(products);
     }
 
+    // Get product by id
     [HttpGet("{id}")]
     public async Task<IActionResult> GetProduct(string id)
     {
@@ -33,7 +35,7 @@ public class ProductsController : ControllerBase
         return Ok(product);
     }
 
-    // POST: Create a new product with image upload
+    // Create a new product with image upload
     [HttpPost]
     public async Task<IActionResult> CreateProduct([FromForm] ProductDto createProductDto)
     {
@@ -42,7 +44,6 @@ public class ProductsController : ControllerBase
             return BadRequest("Product data or image file is missing.");
         }
 
-        // Map DTO to Product entity
         var product = new Product
         {
             Name = createProductDto.Name,
@@ -51,41 +52,34 @@ public class ProductsController : ControllerBase
             Stock = createProductDto.Stock,
         };
 
-        // Upload the image to Cloudinary and get the URL
         var imageUrl = await _cloudinaryService.UploadImageAsync(createProductDto.ImageFile);
         if (string.IsNullOrEmpty(imageUrl))
         {
             return StatusCode(500, "Image upload failed.");
         }
 
-        // Assign the Cloudinary URL to the product
         product.ImageUrl = imageUrl;
 
-        // Save the product to MongoDB
         await _productService.CreateProductAsync(product);
 
-        // Return a 201 Created response
         return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
     }
 
-    // PUT: Update an existing product with an optional image update
+    // Update an existing product with an optional image update
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateProduct(string id, [FromForm] ProductDto productDto)
     {
-        // Fetch the existing product
         var existingProduct = await _productService.GetProductByIdAsync(id);
         if (existingProduct == null)
         {
             return NotFound();
         }
 
-        // Update the existing product's properties from the DTO
         existingProduct.Name = productDto.Name;
         existingProduct.Description = productDto.Description;
         existingProduct.Price = productDto.Price;
         existingProduct.Stock = productDto.Stock;
 
-        // If a new image file is provided, upload it to Cloudinary
         if (productDto.ImageFile != null)
         {
             var imageUrl = await _cloudinaryService.UploadImageAsync(productDto.ImageFile);
@@ -94,18 +88,16 @@ public class ProductsController : ControllerBase
                 return StatusCode(500, "Image upload failed.");
             }
 
-            // Assign the new Cloudinary URL to the existing product
             existingProduct.ImageUrl = imageUrl;
         }
 
-        // Update the product in MongoDB
-        
         existingProduct.UpdatedAt = DateTime.Now;
         await _productService.UpdateProductAsync(id, existingProduct);
 
         return Ok(existingProduct);
     }
 
+    // Delete product by id
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteProduct(string id)
     {

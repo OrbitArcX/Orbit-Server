@@ -18,6 +18,7 @@ builder.Services.AddScoped<MongoDbContext>();  // MongoDB context
 // Add services for your business logic
 builder.Services.AddScoped<ProductService>();  // Add ProductService
 builder.Services.AddScoped<CloudinaryService>();  // Add CloudinaryService
+builder.Services.AddScoped<UserService>();  // Add UserService
 
 var app = builder.Build();
 
