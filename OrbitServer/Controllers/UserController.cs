@@ -118,4 +118,12 @@ public class UserController : ControllerBase
 
         return Ok(user);
     }
+
+    // Get customer accounts to activate
+    [HttpGet("activate/account")]
+    public async Task<IActionResult> GetUsersToApproveLogin()
+    {
+        var users = await _userService.GetUsersToApproveLoginAsync();
+        return Ok(users);
+    }
 }

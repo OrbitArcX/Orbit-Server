@@ -26,4 +26,7 @@ public class UserService
 
     public async Task<User> UserLogin(LoginDto loginDto) =>
         await _users.Find(p => p.Email == loginDto.Username).FirstOrDefaultAsync();
+
+    public async Task<List<User>> GetUsersToApproveLoginAsync() =>
+        await _users.Find(p => p.ApproveStatus == false).ToListAsync();
 }
