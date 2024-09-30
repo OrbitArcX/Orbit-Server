@@ -5,4 +5,6 @@ public class ProductDto
     public decimal Price { get; set; }
     public int Stock { get; set; }
     public IFormFile? ImageFile { get; set; }
+    public string CategoryId { get; set; }
+    public string? VendorId { get; set; }
 }

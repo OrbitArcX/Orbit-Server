@@ -8,11 +8,13 @@ public class ProductsController : ControllerBase
 {
     private readonly ProductService _productService;
     private readonly CloudinaryService _cloudinaryService;
+    private readonly UserService _userService;
 
-    public ProductsController(ProductService productService, CloudinaryService cloudinaryService)
+    public ProductsController(ProductService productService, CloudinaryService cloudinaryService, UserService userService)
     {
         _productService = productService;
         _cloudinaryService = cloudinaryService;
+        _userService = userService;
     }
 
     // Get all products
@@ -35,13 +37,47 @@ public class ProductsController : ControllerBase
         return Ok(product);
     }
 
+    // Get all products by vendor id
+    [HttpGet("vendor/{id}")]
+    public async Task<IActionResult> GetProductsByVendorId(string id)
+    {
+        var vendor = await _userService.GetUserByIdAsync(id);
+
+        if (vendor == null)
+        {
+            return BadRequest("Incorrect vendor id");
+        }
+
+        var products = await _productService.GetProductsByVendorIdAsync(id);
+        return Ok(products);
+    }
+
     // Create a new product with image upload
     [HttpPost]
     public async Task<IActionResult> CreateProduct([FromForm] ProductDto createProductDto)
     {
         if (createProductDto == null || createProductDto.ImageFile == null)
         {
-            return BadRequest("Product data or image file is missing.");
+            return BadRequest("Product data or image file is missing");
+        }
+
+        var category = await _productService.GetCategoryByIdAsync(createProductDto.CategoryId);
+
+        if (category == null || category.Status == false)
+        {
+            return BadRequest("Unavailable product category");
+        }
+
+        if (createProductDto.VendorId == null)
+        {
+            return BadRequest("Vendor details are missing");
+        }
+
+        var vendor = await _userService.GetUserByIdAsync(createProductDto.VendorId);
+
+        if (vendor == null || !vendor.Role.Equals("Vendor", StringComparison.CurrentCultureIgnoreCase))
+        {
+            return BadRequest("Incorrect Vendor details");
         }
 
         var product = new Product
@@ -50,12 +86,14 @@ public class ProductsController : ControllerBase
             Description = createProductDto.Description,
             Price = createProductDto.Price,
             Stock = createProductDto.Stock,
+            Category = category,
+            Vendor = vendor,
         };
 
         var imageUrl = await _cloudinaryService.UploadImageAsync(createProductDto.ImageFile);
         if (string.IsNullOrEmpty(imageUrl))
         {
-            return StatusCode(500, "Image upload failed.");
+            return StatusCode(500, "Image upload failed");
         }
 
         product.ImageUrl = imageUrl;
@@ -75,17 +113,25 @@ public class ProductsController : ControllerBase
             return NotFound();
         }
 
+        var category = await _productService.GetCategoryByIdAsync(productDto.CategoryId);
+
+        if (category == null || category.Status == false)
+        {
+            return BadRequest("Unavailable product category");
+        }
+
         existingProduct.Name = productDto.Name;
         existingProduct.Description = productDto.Description;
         existingProduct.Price = productDto.Price;
         existingProduct.Stock = productDto.Stock;
+        existingProduct.Category = category;
 
         if (productDto.ImageFile != null)
         {
             var imageUrl = await _cloudinaryService.UploadImageAsync(productDto.ImageFile);
             if (string.IsNullOrEmpty(imageUrl))
             {
-                return StatusCode(500, "Image upload failed.");
+                return StatusCode(500, "Image upload failed");
             }
 
             existingProduct.ImageUrl = imageUrl;
@@ -109,5 +155,66 @@ public class ProductsController : ControllerBase
 
         await _productService.DeleteProductAsync(id);
         return Ok($"Successfully deleted product with id: {id}");
+    }
+
+    // Get all product categories
+    [HttpGet("category")]
+    public async Task<IActionResult> GetCategories()
+    {
+        var categories = await _productService.GetCategoriesAsync();
+        return Ok(categories);
+    }
+
+    // Get all activated product categories
+    [HttpGet("category/activated")]
+    public async Task<IActionResult> GetActivatedCategories()
+    {
+        var categories = await _productService.GetActivatedCategoriesAsync();
+        return Ok(categories);
+    }
+
+    // Get product category by id
+    [HttpGet("category/{id}")]
+    public async Task<IActionResult> GetCategory(string id)
+    {
+        var category = await _productService.GetCategoryByIdAsync(id);
+        if (category == null)
+        {
+            return NotFound();
+        }
+        return Ok(category);
+    }
+
+    // Create product category
+    [HttpPost("category")]
+    public async Task<IActionResult> CreateCategory([FromBody] Category category)
+    {
+        if (category == null)
+        {
+            return BadRequest("Category data is missing");
+        }
+
+        await _productService.CreateCategoryAsync(category);
+
+        return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
+    }
+
+    // Update an existing product category
+    [HttpPut("category/{id}")]
+    public async Task<IActionResult> UpdateCategory(string id, [FromBody] Category category)
+    {
+        var existingCategory = await _productService.GetCategoryByIdAsync(id);
+        if (existingCategory == null)
+        {
+            return NotFound();
+        }
+
+        existingCategory.Name = category.Name;
+        existingCategory.Status = category.Status;
+
+        existingCategory.UpdatedAt = DateTime.Now;
+        await _productService.UpdateCategoryAsync(id, existingCategory);
+
+        return Ok(existingCategory);
     }
 }
