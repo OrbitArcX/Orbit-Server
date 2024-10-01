@@ -19,6 +19,19 @@ builder.Services.AddScoped<MongoDbContext>();  // MongoDB context
 builder.Services.AddScoped<ProductService>();  // Add ProductService
 builder.Services.AddScoped<CloudinaryService>();  // Add CloudinaryService
 builder.Services.AddScoped<UserService>();  // Add UserService
+builder.Services.AddScoped<OrderService>();  // Add OrderService
+
+// Configure CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontendApp", builder =>
+    {
+        builder.WithOrigins("http://localhost:3000")  // Allow the frontend origin
+               .AllowAnyHeader()                     // Allow any header
+               .AllowAnyMethod()                     // Allow any method (GET, POST, etc.)
+               .AllowCredentials();                  // Allow credentials if needed
+    });
+});
 
 var app = builder.Build();
 
@@ -30,7 +43,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Enable routing and CORS
 app.UseRouting();
+app.UseCors("AllowFrontendApp");  // Apply the CORS policy
+
 app.MapControllers();
 
 // Weather Forecast Endpoint
