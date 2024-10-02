@@ -443,6 +443,9 @@ public class OrderController : ControllerBase
                     isDelivered = false;
                 }
             }
+            order.Status = OrderStatus.Partial_Delivered;
+            order.UpdatedAt = DateTime.Now;
+            await _orderService.UpdateOrderAsync(order.Id, order);
         }
 
         if (order != null && isDelivered == true)
