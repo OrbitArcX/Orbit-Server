@@ -9,12 +9,14 @@ public class OrderController : ControllerBase
     private readonly OrderService _orderService;
     private readonly UserService _userService;
     private readonly ProductService _productService;
+    private readonly NotificationService _notificationService;
 
-    public OrderController(OrderService orderService, UserService userService, ProductService productService)
+    public OrderController(OrderService orderService, UserService userService, ProductService productService, NotificationService notificationService)
     {
         _orderService = orderService;
         _userService = userService;
         _productService = productService;
+        _notificationService = notificationService;
     }
 
     // Get all carts
@@ -136,5 +138,172 @@ public class OrderController : ControllerBase
 
         await _orderService.DeleteCartAsync(id);
         return Ok($"Successfully deleted cart with id: {id}");
+    }
+
+    // Get all orders
+    [HttpGet]
+    public async Task<IActionResult> GetOrders()
+    {
+        var orders = await _orderService.GetOrdersAsync();
+        return Ok(orders);
+    }
+
+    // Get order by id
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetOrder(string id)
+    {
+        var order = await _orderService.GetOrderByIdAsync(id);
+        if (order == null)
+        {
+            return NotFound();
+        }
+        return Ok(order);
+    }
+
+    // Get order by customer id
+    [HttpGet("customer/{id}")]
+    public async Task<IActionResult> GetOrderByCustomerId(string id)
+    {
+        var orders = await _orderService.GetOrdersByCustomerIdAsync(id);
+        if (orders == null)
+        {
+            return NotFound();
+        }
+        return Ok(orders);
+    }
+
+    // Create a new order
+    [HttpPost]
+    public async Task<IActionResult> CreateOrder([FromBody] Cart cart)
+    {
+        if (cart == null)
+        {
+            return BadRequest("Cart data is missing");
+        }
+
+        if (cart.CartItems == null)
+        {
+            return BadRequest("Cart items are missing");
+        }
+
+        if (cart.Customer == null || cart.Customer.Id == null)
+        {
+            return BadRequest("Customer details are missing");
+        }
+
+        var customer = await _userService.GetUserByIdAsync(cart.Customer.Id);
+        if (customer == null)
+        {
+            return BadRequest("Customer does not exist");
+        }
+
+        var orderItems = new List<OrderItem>();
+
+        foreach (CartItem cartItem in cart.CartItems)
+        {
+            if (cartItem.Product == null || cartItem.Product.Id == null)
+            {
+                return BadRequest("Product id is missing");
+            }
+
+            var product = await _productService.GetProductByIdAsync(cartItem.Product.Id);
+
+            if (product == null)
+            {
+                return BadRequest("Product is not available");
+            }
+
+            if (product.Stock >= cartItem.Quantity)
+            {
+                product.Stock = product.Stock - cartItem.Quantity;
+
+                await _productService.UpdateProductAsync(product.Id, product);
+
+                if (product.Stock < 10)
+                {
+                    var notification = new Notification
+                    {
+                        Title = $"{product.Name} running out of stock",
+                        Body = $"{product.Name} only has {product.Stock} items remaining. Please make sure to restock.",
+                        User = product.Vendor,
+                        SeenStatus = false,
+                    };
+
+                    await _notificationService.CreateNotificationAsync(notification);
+                }
+            }
+            else
+            {
+                return BadRequest($"Not enough stock for product {product.Name}. Available stock: {product.Stock}");
+            }
+
+            var orderItem = new OrderItem
+            {
+                Product = product,
+                Quantity = cartItem.Quantity,
+                TotalPrice = cartItem.TotalPrice,
+                Vendor = product.Vendor,
+                Customer = customer,
+                Status = OrderStatus.Pending,
+            };
+
+            await _orderService.CreateOrderItemAsync(orderItem);
+
+            orderItems.Add(orderItem);
+        }
+
+        var order = new Order
+        {
+            OrderItems = orderItems,
+            Customer = customer,
+            OrderPrice = cart.CartPrice,
+            CancelRequest = false,
+            Status = OrderStatus.Pending,
+        };
+
+        await _orderService.CreateOrderAsync(order);
+
+        foreach (OrderItem dbOrderItem in order.OrderItems)
+        {
+            dbOrderItem.OrderId = order.Id;
+
+            await _orderService.UpdateOrderItemAsync(dbOrderItem.Id, dbOrderItem);
+        }
+
+        await _orderService.DeleteCartAsync(cart.Id);
+
+        return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
+    }
+
+    // Update an existing order status
+    [HttpPut("status/{id}")]
+    public async Task<IActionResult> UpdateOrderStatus(string id, [FromQuery] OrderStatus status)
+    {
+        var existingOrder = await _orderService.GetOrderByIdAsync(id);
+        if (existingOrder == null)
+        {
+            return NotFound();
+        }
+
+        existingOrder.Status = status;
+
+        existingOrder.UpdatedAt = DateTime.Now;
+        await _orderService.UpdateOrderAsync(id, existingOrder);
+
+        return Ok(existingOrder);
+    }
+
+    // Delete order by id
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteOrder(string id)
+    {
+        var existingOrder = await _orderService.GetOrderByIdAsync(id);
+        if (existingOrder == null)
+        {
+            return NotFound();
+        }
+
+        await _orderService.DeleteOrderAsync(id);
+        return Ok($"Successfully deleted order with id: {id}");
     }
 }
