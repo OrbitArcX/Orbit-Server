@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -277,7 +278,7 @@ public class OrderController : ControllerBase
 
     // Update an existing order status
     [HttpPut("status/{id}")]
-    public async Task<IActionResult> UpdateOrderStatus(string id, [FromQuery] OrderStatus status)
+    public async Task<IActionResult> UpdateOrderStatus(string id, [FromQuery, Required] OrderStatus status)
     {
         var existingOrder = await _orderService.GetOrderByIdAsync(id);
         if (existingOrder == null)
@@ -344,7 +345,7 @@ public class OrderController : ControllerBase
 
     // Cancel order request
     [HttpPut("cancel/{id}")]
-    public async Task<IActionResult> CancelOrderRequest(string id, [FromQuery] string cancelReason)
+    public async Task<IActionResult> CancelOrderRequest(string id, [FromQuery, Required] string cancelReason)
     {
         var existingOrder = await _orderService.GetOrderByIdAsync(id);
         if (existingOrder == null)
@@ -404,7 +405,7 @@ public class OrderController : ControllerBase
 
     // Update order item status
     [HttpPut("item/status/{id}")]
-    public async Task<IActionResult> UpdateOrderItemStatus(string id, [FromQuery] OrderStatus status)
+    public async Task<IActionResult> UpdateOrderItemStatus(string id, [FromQuery, Required] OrderStatus status)
     {
         var existingOrderItem = await _orderService.GetOrderItemByIdAsync(id);
         if (existingOrderItem == null)
