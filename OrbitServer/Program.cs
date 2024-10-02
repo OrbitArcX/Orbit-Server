@@ -1,11 +1,18 @@
 using MongoDB.Driver;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddControllers();
+
+// Add the enum string serialization configuration
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 // Cloudinary settings
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
@@ -15,11 +22,12 @@ builder.Services.AddSingleton<IMongoClient, MongoClient>(sp =>
     new MongoClient(builder.Configuration.GetConnectionString("MongoDbConnection")));
 builder.Services.AddScoped<MongoDbContext>();  // MongoDB context
 
-// Add services for your business logic
+// Add services for business logic
 builder.Services.AddScoped<ProductService>();  // Add ProductService
 builder.Services.AddScoped<CloudinaryService>();  // Add CloudinaryService
 builder.Services.AddScoped<UserService>();  // Add UserService
 builder.Services.AddScoped<OrderService>();  // Add OrderService
+builder.Services.AddScoped<NotificationService>();  // Add NotificationService
 
 // Configure CORS policy
 builder.Services.AddCors(options =>

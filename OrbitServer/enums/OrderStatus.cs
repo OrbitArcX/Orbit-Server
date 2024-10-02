@@ -1,8 +1,8 @@
 public enum OrderStatus
 {
     Pending,
-    Processing,
     Dispatched,
+    Partial_Delivered,
     Delivered,
     Canceled
 }

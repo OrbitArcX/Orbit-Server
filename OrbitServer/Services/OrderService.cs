@@ -1,3 +1,4 @@
+using CloudinaryDotNet.Core;
 using MongoDB.Driver;
 
 public class OrderService
@@ -30,4 +31,55 @@ public class OrderService
 
     public async Task<Cart> GetCartByCustomerIdAsync(string id) =>
         await _carts.Find(c => c.Customer.Id == id).FirstOrDefaultAsync();
+
+    public async Task<List<Order>> GetOrdersAsync() =>
+        await _orders.Find(o => true).ToListAsync();
+
+    public async Task<Order> GetOrderByIdAsync(string id) =>
+        await _orders.Find(o => o.Id == id).FirstOrDefaultAsync();
+
+    public async Task CreateOrderAsync(Order order) =>
+        await _orders.InsertOneAsync(order);
+
+    public async Task UpdateOrderAsync(string id, Order order) =>
+        await _orders.ReplaceOneAsync(o => o.Id == id, order);
+
+    public async Task DeleteOrderAsync(string id) =>
+        await _orders.DeleteOneAsync(o => o.Id == id);
+
+    public async Task<List<Order>> GetOrdersByCustomerIdAsync(string id) =>
+        await _orders.Find(o => o.Customer.Id == id).ToListAsync();
+
+    public async Task<List<Order>> GetOrdersByStatusAsync(OrderStatus status) =>
+        await _orders.Find(o => o.Status == status).ToListAsync();
+
+    public async Task<List<Order>> GetCancelRequestOrdersAsync() =>
+        await _orders.Find(o => o.CancelRequest == true && o.Status != OrderStatus.Canceled).ToListAsync();
+
+    public async Task<List<OrderItem>> GetOrderItemsAsync() =>
+        await _orderItems.Find(oi => true).ToListAsync();
+
+    public async Task<OrderItem> GetOrderItemByIdAsync(string id) =>
+        await _orderItems.Find(oi => oi.Id == id).FirstOrDefaultAsync();
+
+    public async Task CreateOrderItemAsync(OrderItem orderItem) =>
+        await _orderItems.InsertOneAsync(orderItem);
+
+    public async Task UpdateOrderItemAsync(string id, OrderItem orderItem) =>
+        await _orderItems.ReplaceOneAsync(oi => oi.Id == id, orderItem);
+
+    public async Task DeleteOrderItemAsync(string id) =>
+        await _orderItems.DeleteOneAsync(oi => oi.Id == id);
+
+    public async Task<List<OrderItem>> GetOrderItemsByCustomerIdAsync(string id) =>
+        await _orderItems.Find(oi => oi.Customer.Id == id).ToListAsync();
+
+    public async Task<List<OrderItem>> GetOrderItemsByVendorIdAsync(string id) =>
+        await _orderItems.Find(oi => oi.Vendor.Id == id).ToListAsync();
+
+    public async Task<List<OrderItem>> GetOrderItemsByStatusAsync(OrderStatus status) =>
+        await _orderItems.Find(oi => oi.Status == status).ToListAsync();
+
+    public async Task<List<OrderItem>> GetOrderItemsByProductIdAsync(string id) =>
+        await _orderItems.Find(oi => oi.Product.Id == id).ToListAsync();
 }
