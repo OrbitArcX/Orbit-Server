@@ -54,7 +54,7 @@ public class OrderService
         await _orders.Find(o => o.Status == status).ToListAsync();
 
     public async Task<List<Order>> GetCancelRequestOrdersAsync() =>
-        await _orders.Find(o => o.CancelRequest == true).ToListAsync();
+        await _orders.Find(o => o.CancelRequest == true && o.Status != OrderStatus.Canceled).ToListAsync();
 
     public async Task<List<OrderItem>> GetOrderItemsAsync() =>
         await _orderItems.Find(oi => true).ToListAsync();

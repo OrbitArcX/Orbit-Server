@@ -290,6 +290,41 @@ public class OrderController : ControllerBase
         existingOrder.UpdatedAt = DateTime.Now;
         await _orderService.UpdateOrderAsync(id, existingOrder);
 
+        if (status == OrderStatus.Delivered)
+        {
+            var notification = new Notification
+            {
+                Title = $"Order: {existingOrder.Id} is Delivered",
+                Body = $"Order: {existingOrder.Id} is delivered. Thank you for shopping with us! Feel free to rate the vendor.",
+                User = existingOrder.Customer,
+                SeenStatus = false,
+            };
+
+            await _notificationService.CreateNotificationAsync(notification);
+        }
+
+        if (status == OrderStatus.Canceled)
+        {
+            var notification = new Notification
+            {
+                Title = $"Order: {existingOrder.Id} is Cancelled",
+                Body = $"Order: {existingOrder.Id} is cancelled due to the reason given as: {existingOrder.CancelReason}",
+                User = existingOrder.Customer,
+                SeenStatus = false,
+            };
+
+            await _notificationService.CreateNotificationAsync(notification);
+
+            foreach (OrderItem orderItem in existingOrder.OrderItems)
+            {
+                var dbOrderItem = await _orderService.GetOrderItemByIdAsync(orderItem.Id);
+                dbOrderItem.Status = OrderStatus.Canceled;
+                dbOrderItem.UpdatedAt = DateTime.Now;
+                await _orderService.UpdateOrderItemAsync(dbOrderItem.Id, dbOrderItem);
+            }
+
+        }
+
         return Ok(existingOrder);
     }
 
@@ -305,5 +340,118 @@ public class OrderController : ControllerBase
 
         await _orderService.DeleteOrderAsync(id);
         return Ok($"Successfully deleted order with id: {id}");
+    }
+
+    // Cancel order request
+    [HttpPut("cancel/{id}")]
+    public async Task<IActionResult> CancelOrderRequest(string id, [FromQuery] string cancelReason)
+    {
+        var existingOrder = await _orderService.GetOrderByIdAsync(id);
+        if (existingOrder == null)
+        {
+            return NotFound();
+        }
+
+        if (existingOrder.Status != OrderStatus.Pending)
+        {
+            return BadRequest("Order is already dispatched! Cannot request to cancel the order");
+        }
+
+        existingOrder.CancelRequest = true;
+        existingOrder.CancelReason = cancelReason;
+
+        existingOrder.UpdatedAt = DateTime.Now;
+        await _orderService.UpdateOrderAsync(id, existingOrder);
+
+        return Ok(existingOrder);
+    }
+
+    // Get all cancel request orders
+    [HttpGet("cancel/requests")]
+    public async Task<IActionResult> GetCancelRequestOrders()
+    {
+        var orders = await _orderService.GetCancelRequestOrdersAsync();
+        if (orders == null)
+        {
+            return NotFound();
+        }
+        return Ok(orders);
+    }
+
+    // Get all order items by customer id
+    [HttpGet("item/customer/{id}")]
+    public async Task<IActionResult> GetOrderItemsByCustomerId(string id)
+    {
+        var orderItems = await _orderService.GetOrderItemsByCustomerIdAsync(id);
+        if (orderItems == null)
+        {
+            return NotFound();
+        }
+        return Ok(orderItems);
+    }
+
+    // Get all order items by vendor id
+    [HttpGet("item/vendor/{id}")]
+    public async Task<IActionResult> GetOrderItemsByVendorId(string id)
+    {
+        var orderItems = await _orderService.GetOrderItemsByVendorIdAsync(id);
+        if (orderItems == null)
+        {
+            return NotFound();
+        }
+        return Ok(orderItems);
+    }
+
+    // Update order item status
+    [HttpPut("item/status/{id}")]
+    public async Task<IActionResult> UpdateOrderItemStatus(string id, [FromQuery] OrderStatus status)
+    {
+        var existingOrderItem = await _orderService.GetOrderItemByIdAsync(id);
+        if (existingOrderItem == null)
+        {
+            return NotFound();
+        }
+
+        existingOrderItem.Status = status;
+
+        existingOrderItem.UpdatedAt = DateTime.Now;
+        await _orderService.UpdateOrderItemAsync(id, existingOrderItem);
+
+        var order = await _orderService.GetOrderByIdAsync(existingOrderItem.OrderId);
+        bool isDelivered = true;
+
+        if (status == OrderStatus.Delivered)
+        {
+            var notification = new Notification
+            {
+                Title = $"Order Item: {existingOrderItem.Id} is Delivered",
+                Body = $"Order Item: {existingOrderItem.Id} is delivered. Enjoy the item!",
+                User = existingOrderItem.Customer,
+                SeenStatus = false,
+            };
+
+            await _notificationService.CreateNotificationAsync(notification);
+        }
+
+        if (order != null && status == OrderStatus.Delivered)
+        {
+            foreach (OrderItem orderItem in order.OrderItems)
+            {
+                var dbOrderItem = await _orderService.GetOrderItemByIdAsync(orderItem.Id);
+                if (dbOrderItem.Status != OrderStatus.Delivered)
+                {
+                    isDelivered = false;
+                }
+            }
+        }
+
+        if (order != null && isDelivered == true)
+        {
+            order.Status = OrderStatus.Delivered;
+            order.UpdatedAt = DateTime.Now;
+            await _orderService.UpdateOrderAsync(order.Id, order);
+        }
+
+        return Ok(existingOrderItem);
     }
 }

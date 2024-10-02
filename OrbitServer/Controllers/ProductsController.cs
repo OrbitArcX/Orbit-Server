@@ -9,12 +9,14 @@ public class ProductsController : ControllerBase
     private readonly ProductService _productService;
     private readonly CloudinaryService _cloudinaryService;
     private readonly UserService _userService;
+    private readonly OrderService _orderService;
 
-    public ProductsController(ProductService productService, CloudinaryService cloudinaryService, UserService userService)
+    public ProductsController(ProductService productService, CloudinaryService cloudinaryService, UserService userService, OrderService orderService)
     {
         _productService = productService;
         _cloudinaryService = cloudinaryService;
         _userService = userService;
+        _orderService = orderService;
     }
 
     // Get all products
@@ -151,6 +153,16 @@ public class ProductsController : ControllerBase
         if (existingProduct == null)
         {
             return NotFound();
+        }
+
+        var orderItems = await _orderService.GetOrderItemsByProductIdAsync(id);
+
+        foreach (OrderItem orderItem in orderItems)
+        {
+            if (orderItem.Status == OrderStatus.Pending)
+            {
+                return BadRequest("Cannot delete products in a pending order");
+            }
         }
 
         await _productService.DeleteProductAsync(id);
