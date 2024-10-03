@@ -34,10 +34,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontendApp", builder =>
     {
-        builder.WithOrigins("http://localhost:3000")  // Allow the frontend origin
-               .AllowAnyHeader()                     // Allow any header
-               .AllowAnyMethod()                     // Allow any method (GET, POST, etc.)
-               .AllowCredentials();                  // Allow credentials if needed
+        builder.AllowAnyOrigin()  // Allow any origin
+               .AllowAnyHeader()  // Allow any header
+               .AllowAnyMethod()  // Allow any method (GET, POST, etc.)
+               .AllowCredentials();  // Allow credentials if needed
     });
 });
 
