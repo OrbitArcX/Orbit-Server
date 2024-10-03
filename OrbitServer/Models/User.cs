@@ -14,6 +14,7 @@ public class User
     public bool Status { get; set; }
     public bool ApproveStatus { get; set; }
     public decimal Rating { get; set; }
+    public decimal RatingCount { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
