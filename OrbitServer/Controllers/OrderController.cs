@@ -296,7 +296,7 @@ public class OrderController : ControllerBase
             var notification = new Notification
             {
                 Title = $"Order: {existingOrder.Id} is Delivered",
-                Body = $"Order: {existingOrder.Id} is delivered. Thank you for shopping with us! Feel free to rate the vendor.",
+                Body = $"Order: {existingOrder.Id} is delivered. Thank you for shopping with us!",
                 User = existingOrder.Customer,
                 SeenStatus = false,
             };
@@ -426,7 +426,7 @@ public class OrderController : ControllerBase
             var notification = new Notification
             {
                 Title = $"Order Item: {existingOrderItem.Id} is Delivered",
-                Body = $"Order Item: {existingOrderItem.Id} is delivered. Enjoy the item!",
+                Body = $"Order Item: {existingOrderItem.Id} is delivered. Enjoy the item! Feel free to rate the vendor.",
                 User = existingOrderItem.Customer,
                 SeenStatus = false,
             };
@@ -454,6 +454,16 @@ public class OrderController : ControllerBase
             order.Status = OrderStatus.Delivered;
             order.UpdatedAt = DateTime.Now;
             await _orderService.UpdateOrderAsync(order.Id, order);
+
+            var notification = new Notification
+            {
+                Title = $"Order: {order.Id} is Delivered",
+                Body = $"Order: {order.Id} is delivered. Thank you for shopping with us!",
+                User = order.Customer,
+                SeenStatus = false,
+            };
+
+            await _notificationService.CreateNotificationAsync(notification);
         }
 
         return Ok(existingOrderItem);
