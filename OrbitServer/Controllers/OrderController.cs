@@ -234,6 +234,20 @@ public class OrderController : ControllerBase
                     };
 
                     await _notificationService.CreateNotificationAsync(notification);
+
+                    var adminUsers = await _userService.GetUsersByRoleAsync("Admin");
+                    foreach (User admin in adminUsers)
+                    {
+                        var adminNotification = new Notification
+                        {
+                            Title = $"{product.Name} running out of stock",
+                            Body = $"{product.Name} only has {product.Stock} items remaining. Please make sure to restock.",
+                            User = admin,
+                            SeenStatus = false,
+                        };
+
+                        await _notificationService.CreateNotificationAsync(adminNotification);
+                    }
                 }
             }
             else
