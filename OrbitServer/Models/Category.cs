@@ -12,6 +12,7 @@ public class Category
 
     public string Name { get; set; }
     public bool Status { get; set; }
+    public string? ImageUrl { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;

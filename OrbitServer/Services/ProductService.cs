@@ -2,6 +2,7 @@
 // Description: Product service to define repository methods to handle product data in the database
 
 using MongoDB.Driver;
+using MongoDB.Bson;
 
 public class ProductService
 {
@@ -46,4 +47,78 @@ public class ProductService
 
     public async Task<List<Category>> GetActivatedCategoriesAsync() =>
         await _categories.Find(c => c.Status == true).ToListAsync();
+
+    // Product search with sorting by price and vendor rating
+    public async Task<List<Product>> SearchProductsAsync(
+        string? name,
+        decimal? minPrice,
+        decimal? maxPrice,
+        string? vendorId,
+        decimal? minRating,
+        decimal? maxRating,
+        string? sortBy = null,
+        bool isAscending = true)
+    {
+        var filter = Builders<Product>.Filter.Empty;
+
+        // Filter by name (case insensitive)
+        if (!string.IsNullOrEmpty(name))
+        {
+            filter &= Builders<Product>.Filter.Regex(p => p.Name, new BsonRegularExpression(name, "i"));
+        }
+
+        // Filter by price range
+        if (minPrice.HasValue && maxPrice.HasValue)
+        {
+            filter &= Builders<Product>.Filter.Gte(p => p.Price, minPrice.Value) &
+                      Builders<Product>.Filter.Lte(p => p.Price, maxPrice.Value);
+        }
+        else if (minPrice.HasValue)
+        {
+            filter &= Builders<Product>.Filter.Gte(p => p.Price, minPrice.Value);
+        }
+        else if (maxPrice.HasValue)
+        {
+            filter &= Builders<Product>.Filter.Lte(p => p.Price, maxPrice.Value);
+        }
+
+        // Filter by vendor
+        if (!string.IsNullOrEmpty(vendorId))
+        {
+            filter &= Builders<Product>.Filter.Eq(p => p.Vendor.Id, vendorId);
+        }
+
+        // Filter by rating range (using vendor rating)
+        if (minRating.HasValue && maxRating.HasValue)
+        {
+            filter &= Builders<Product>.Filter.Gte(p => p.Vendor.Rating, minRating.Value) &
+                      Builders<Product>.Filter.Lte(p => p.Vendor.Rating, maxRating.Value);
+        }
+        else if (minRating.HasValue)
+        {
+            filter &= Builders<Product>.Filter.Gte(p => p.Vendor.Rating, minRating.Value);
+        }
+        else if (maxRating.HasValue)
+        {
+            filter &= Builders<Product>.Filter.Lte(p => p.Vendor.Rating, maxRating.Value);
+        }
+
+        var sort = Builders<Product>.Sort.Ascending(p => p.Name); // Default sort
+
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            if (sortBy.Equals("price", StringComparison.OrdinalIgnoreCase))
+            {
+                sort = isAscending ? Builders<Product>.Sort.Ascending(p => p.Price)
+                                   : Builders<Product>.Sort.Descending(p => p.Price);
+            }
+            else if (sortBy.Equals("rating", StringComparison.OrdinalIgnoreCase))
+            {
+                sort = isAscending ? Builders<Product>.Sort.Ascending(p => p.Vendor.Rating)
+                                   : Builders<Product>.Sort.Descending(p => p.Vendor.Rating);
+            }
+        }
+
+        return await _products.Find(filter).Sort(sort).ToListAsync();
+    }
 }

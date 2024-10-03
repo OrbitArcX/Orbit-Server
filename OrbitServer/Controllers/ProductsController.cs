@@ -95,13 +95,16 @@ public class ProductsController : ControllerBase
             Vendor = vendor,
         };
 
-        var imageUrl = await _cloudinaryService.UploadImageAsync(createProductDto.ImageFile);
-        if (string.IsNullOrEmpty(imageUrl))
+        if (createProductDto.ImageFile != null)
         {
-            return StatusCode(500, "Image upload failed");
-        }
+            var imageUrl = await _cloudinaryService.UploadImageAsync(createProductDto.ImageFile);
+            if (string.IsNullOrEmpty(imageUrl))
+            {
+                return StatusCode(500, "Image upload failed");
+            }
 
-        product.ImageUrl = imageUrl;
+            product.ImageUrl = imageUrl;
+        }
 
         await _productService.CreateProductAsync(product);
 
@@ -202,11 +205,28 @@ public class ProductsController : ControllerBase
 
     // Create product category
     [HttpPost("category")]
-    public async Task<IActionResult> CreateCategory([FromBody] Category category)
+    public async Task<IActionResult> CreateCategory([FromForm] CategoryDto categoryDto)
     {
-        if (category == null)
+        if (categoryDto == null)
         {
             return BadRequest("Category data is missing");
+        }
+
+        var category = new Category
+        {
+            Name = categoryDto.Name,
+            Status = categoryDto.Status,
+        };
+
+        if (categoryDto.ImageFile != null)
+        {
+            var imageUrl = await _cloudinaryService.UploadImageAsync(categoryDto.ImageFile);
+            if (string.IsNullOrEmpty(imageUrl))
+            {
+                return StatusCode(500, "Image upload failed");
+            }
+
+            category.ImageUrl = imageUrl;
         }
 
         await _productService.CreateCategoryAsync(category);
@@ -216,7 +236,7 @@ public class ProductsController : ControllerBase
 
     // Update an existing product category
     [HttpPut("category/{id}")]
-    public async Task<IActionResult> UpdateCategory(string id, [FromBody] Category category)
+    public async Task<IActionResult> UpdateCategory(string id, [FromForm] CategoryDto categoryDto)
     {
         var existingCategory = await _productService.GetCategoryByIdAsync(id);
         if (existingCategory == null)
@@ -224,12 +244,39 @@ public class ProductsController : ControllerBase
             return NotFound();
         }
 
-        existingCategory.Name = category.Name;
-        existingCategory.Status = category.Status;
+        existingCategory.Name = categoryDto.Name;
+        existingCategory.Status = categoryDto.Status;
+
+        if (categoryDto.ImageFile != null)
+        {
+            var imageUrl = await _cloudinaryService.UploadImageAsync(categoryDto.ImageFile);
+            if (string.IsNullOrEmpty(imageUrl))
+            {
+                return StatusCode(500, "Image upload failed");
+            }
+
+            existingCategory.ImageUrl = imageUrl;
+        }
 
         existingCategory.UpdatedAt = DateTime.Now;
         await _productService.UpdateCategoryAsync(id, existingCategory);
 
         return Ok(existingCategory);
+    }
+
+    // Product search with sorting by price and vendor rating
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchProducts(
+        [FromQuery] string? name,
+        [FromQuery] decimal? minPrice,
+        [FromQuery] decimal? maxPrice,
+        [FromQuery] string? vendorId,
+        [FromQuery] decimal? minRating,
+        [FromQuery] decimal? maxRating,
+        [FromQuery] string? sortBy,
+        [FromQuery] bool isAscending = true)
+    {
+        var products = await _productService.SearchProductsAsync(name, minPrice, maxPrice, vendorId, minRating, maxRating, sortBy, isAscending);
+        return Ok(products);
     }
 }
