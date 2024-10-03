@@ -4,5 +4,5 @@ public enum OrderStatus
     Dispatched,
     Partial_Delivered,
     Delivered,
-    Canceled
+    Cancelled
 }

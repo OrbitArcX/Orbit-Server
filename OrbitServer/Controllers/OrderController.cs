@@ -304,7 +304,7 @@ public class OrderController : ControllerBase
             await _notificationService.CreateNotificationAsync(notification);
         }
 
-        if (status == OrderStatus.Canceled)
+        if (status == OrderStatus.Cancelled)
         {
             var notification = new Notification
             {
@@ -319,7 +319,7 @@ public class OrderController : ControllerBase
             foreach (OrderItem orderItem in existingOrder.OrderItems)
             {
                 var dbOrderItem = await _orderService.GetOrderItemByIdAsync(orderItem.Id);
-                dbOrderItem.Status = OrderStatus.Canceled;
+                dbOrderItem.Status = OrderStatus.Cancelled;
                 dbOrderItem.UpdatedAt = DateTime.Now;
                 await _orderService.UpdateOrderItemAsync(dbOrderItem.Id, dbOrderItem);
             }
