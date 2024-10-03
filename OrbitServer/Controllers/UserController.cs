@@ -126,4 +126,12 @@ public class UserController : ControllerBase
         var users = await _userService.GetUsersToApproveLoginAsync();
         return Ok(users);
     }
+
+    // Get all users by role
+    [HttpGet("role/{role}")]
+    public async Task<IActionResult> GetUsersByRole(string role)
+    {
+        var users = await _userService.GetUsersByRoleAsync(role);
+        return Ok(users);
+    }
 }
