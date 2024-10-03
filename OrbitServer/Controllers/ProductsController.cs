@@ -232,4 +232,20 @@ public class ProductsController : ControllerBase
 
         return Ok(existingCategory);
     }
+
+    // Product search with sorting by price and vendor rating
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchProducts(
+        [FromQuery] string? name,
+        [FromQuery] decimal? minPrice,
+        [FromQuery] decimal? maxPrice,
+        [FromQuery] string? vendorId,
+        [FromQuery] decimal? minRating,
+        [FromQuery] decimal? maxRating,
+        [FromQuery] string? sortBy,
+        [FromQuery] bool isAscending = true)
+    {
+        var products = await _productService.SearchProductsAsync(name, minPrice, maxPrice, vendorId, minRating, maxRating, sortBy, isAscending);
+        return Ok(products);
+    }
 }
