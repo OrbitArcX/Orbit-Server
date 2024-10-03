@@ -1,3 +1,6 @@
+// File Name: UserService.cs
+// Description: User service to define repository methods to handle user data in the database
+
 using MongoDB.Driver;
 
 public class UserService

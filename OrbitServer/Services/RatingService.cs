@@ -1,3 +1,6 @@
+// File Name: RatingService.cs
+// Description: Rating service to define repository methods to handle vendor rating data in the database
+
 using MongoDB.Driver;
 
 public class RatingService

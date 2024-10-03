@@ -1,3 +1,6 @@
+// File Name: ProductController.cs
+// Description: Handles all product related business logic
+
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;

@@ -1,3 +1,6 @@
+// File Name: ProductDto.cs
+// Description: Request body template for product creation and update
+
 public class ProductDto
 {
     public string Name { get; set; }

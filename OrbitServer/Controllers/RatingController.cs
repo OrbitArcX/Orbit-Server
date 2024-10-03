@@ -1,3 +1,6 @@
+// File Name: RatingController.cs
+// Description: Handles all vendor rating related business logic
+
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;

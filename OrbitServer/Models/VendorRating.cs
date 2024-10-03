@@ -1,3 +1,6 @@
+// File Name: VendorRating.cs
+// Description: Vendor rating model
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 

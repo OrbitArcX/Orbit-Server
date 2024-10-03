@@ -1,3 +1,6 @@
+// File Name: CloudinaryService.cs
+// Description: Cloudinary image upload mechanism for all image uploading scenarios used in the project
+
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Options;

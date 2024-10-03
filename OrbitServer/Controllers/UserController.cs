@@ -1,3 +1,6 @@
+// File Name: UserController.cs
+// Description: Handles all user related business logic
+
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;

@@ -1,3 +1,6 @@
+// File Name: NotificationService.cs
+// Description: Notification service to define repository methods to handle notification data in the database
+
 using MongoDB.Driver;
 
 public class NotificationService

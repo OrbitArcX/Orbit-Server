@@ -1,3 +1,6 @@
+// File Name: MongoDbContext.cs
+// Description: Establish mongoDb connection configurations
+
 using MongoDB.Driver;
 using Microsoft.Extensions.Configuration;
 
@@ -9,7 +12,7 @@ public class MongoDbContext
     {
         // Use the connection string from appsettings.json
         var mongoClient = new MongoClient(configuration["MongoDbSettings:ConnectionString"]);
-        
+
         // Get the database name from appsettings.json
         _database = mongoClient.GetDatabase(configuration["MongoDbSettings:DatabaseName"]);
     }

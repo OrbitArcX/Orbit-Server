@@ -1,3 +1,6 @@
+// File Name: User.cs
+// Description: User model
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
