@@ -1,3 +1,6 @@
+// File Name: Category.cs
+// Description: Product category model
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 

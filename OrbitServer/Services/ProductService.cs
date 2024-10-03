@@ -1,3 +1,6 @@
+// File Name: ProductService.cs
+// Description: Product service to define repository methods to handle product data in the database
+
 using MongoDB.Driver;
 
 public class ProductService

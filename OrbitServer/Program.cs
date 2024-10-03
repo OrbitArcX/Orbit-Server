@@ -28,6 +28,7 @@ builder.Services.AddScoped<CloudinaryService>();  // Add CloudinaryService
 builder.Services.AddScoped<UserService>();  // Add UserService
 builder.Services.AddScoped<OrderService>();  // Add OrderService
 builder.Services.AddScoped<NotificationService>();  // Add NotificationService
+builder.Services.AddScoped<RatingService>();  // Add RatingService
 
 // Configure CORS policy
 builder.Services.AddCors(options =>

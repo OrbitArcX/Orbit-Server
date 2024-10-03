@@ -1,3 +1,6 @@
+// File Name: Notification.cs
+// Description: Notification model
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 

@@ -1,3 +1,6 @@
+// File Name: NotificationController.cs
+// Description: Handles all notification related business logic
+
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;

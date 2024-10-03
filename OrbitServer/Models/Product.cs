@@ -1,3 +1,6 @@
+// File Name: Product.cs
+// Description: Product model
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 

@@ -1,3 +1,6 @@
+// File Name: UserController.cs
+// Description: Handles all user related business logic
+
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -124,6 +127,14 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetUsersToApproveLogin()
     {
         var users = await _userService.GetUsersToApproveLoginAsync();
+        return Ok(users);
+    }
+
+    // Get all users by role
+    [HttpGet("role/{role}")]
+    public async Task<IActionResult> GetUsersByRole(string role)
+    {
+        var users = await _userService.GetUsersByRoleAsync(role);
         return Ok(users);
     }
 }

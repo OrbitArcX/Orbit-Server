@@ -1,3 +1,6 @@
+// File Name: Cart.cs
+// Description: Shopping cart model
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 

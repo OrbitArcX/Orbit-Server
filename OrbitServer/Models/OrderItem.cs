@@ -1,3 +1,6 @@
+// File Name: OrderItem.cs
+// Description: Order item model
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
