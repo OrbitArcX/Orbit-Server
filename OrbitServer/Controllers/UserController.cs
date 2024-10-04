@@ -10,10 +10,12 @@ using Microsoft.AspNetCore.Http;
 public class UserController : ControllerBase
 {
     private readonly UserService _userService;
+    private readonly NotificationService _notificationService;
 
-    public UserController(UserService userService)
+    public UserController(UserService userService, NotificationService notificationService)
     {
         _userService = userService;
+        _notificationService = notificationService;
     }
 
     // Get all users
@@ -48,6 +50,20 @@ public class UserController : ControllerBase
         if (user.Role == "Customer")
         {
             user.ApproveStatus = false;
+
+            var csrUsers = await _userService.GetUsersByRoleAsync("CSR");
+            foreach (User csr in csrUsers)
+            {
+                var csrNotification = new Notification
+                {
+                    Title = "New customer registered to the system",
+                    Body = $"{csr.Name}, Do the needful to activate the newly registered customer account with user name: {user.Name}.",
+                    User = csr,
+                    SeenStatus = false,
+                };
+
+                await _notificationService.CreateNotificationAsync(csrNotification);
+            }
         }
         else
         {
