@@ -57,6 +57,21 @@ public class ProductsController : ControllerBase
         return Ok(products);
     }
 
+    // Get all products by category id
+    [HttpGet("getby/category/{id}")]
+    public async Task<IActionResult> GetProductsByCategoryId(string id)
+    {
+        var category = await _productService.GetCategoryByIdAsync(id);
+
+        if (category == null)
+        {
+            return BadRequest("Incorrect category id");
+        }
+
+        var products = await _productService.GetProductsByCategoryIdAsync(id);
+        return Ok(products);
+    }
+
     // Create a new product with image upload
     [HttpPost]
     public async Task<IActionResult> CreateProduct([FromForm] ProductDto createProductDto)
@@ -282,12 +297,13 @@ public class ProductsController : ControllerBase
         [FromQuery] decimal? minPrice,
         [FromQuery] decimal? maxPrice,
         [FromQuery] string? vendorId,
+        [FromQuery] string? categoryId,
         [FromQuery] decimal? minRating,
         [FromQuery] decimal? maxRating,
         [FromQuery] string? sortBy,
         [FromQuery] bool isAscending = true)
     {
-        var products = await _productService.SearchProductsAsync(name, author, minPrice, maxPrice, vendorId, minRating, maxRating, sortBy, isAscending);
+        var products = await _productService.SearchProductsAsync(name, author, minPrice, maxPrice, vendorId, categoryId, minRating, maxRating, sortBy, isAscending);
         return Ok(products);
     }
 }

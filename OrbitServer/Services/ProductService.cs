@@ -24,6 +24,9 @@ public class ProductService
     public async Task<List<Product>> GetProductsByVendorIdAsync(string id) =>
         await _products.Find(p => p.Vendor.Id == id).ToListAsync();
 
+    public async Task<List<Product>> GetProductsByCategoryIdAsync(string id) =>
+        await _products.Find(p => p.Category.Id == id).ToListAsync();
+
     public async Task CreateProductAsync(Product product) =>
         await _products.InsertOneAsync(product);
 
@@ -55,6 +58,7 @@ public class ProductService
         decimal? minPrice,
         decimal? maxPrice,
         string? vendorId,
+        string? categoryId,
         decimal? minRating,
         decimal? maxRating,
         string? sortBy = null,
@@ -93,6 +97,12 @@ public class ProductService
         if (!string.IsNullOrEmpty(vendorId))
         {
             filter &= Builders<Product>.Filter.Eq(p => p.Vendor.Id, vendorId);
+        }
+
+        // Filter by category
+        if (!string.IsNullOrEmpty(categoryId))
+        {
+            filter &= Builders<Product>.Filter.Eq(p => p.Category.Id, categoryId);
         }
 
         // Filter by rating range (using vendor rating)
