@@ -106,6 +106,11 @@ public class ProductsController : ControllerBase
             product.ImageUrl = imageUrl;
         }
 
+        if (createProductDto.Author != null)
+        {
+            product.Author = createProductDto.Author;
+        }
+
         await _productService.CreateProductAsync(product);
 
         return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
@@ -143,6 +148,11 @@ public class ProductsController : ControllerBase
             }
 
             existingProduct.ImageUrl = imageUrl;
+        }
+
+        if (productDto.Author != null)
+        {
+            existingProduct.Author = productDto.Author;
         }
 
         existingProduct.UpdatedAt = DateTime.Now;
@@ -268,6 +278,7 @@ public class ProductsController : ControllerBase
     [HttpGet("search")]
     public async Task<IActionResult> SearchProducts(
         [FromQuery] string? name,
+        [FromQuery] string? author,
         [FromQuery] decimal? minPrice,
         [FromQuery] decimal? maxPrice,
         [FromQuery] string? vendorId,
@@ -276,7 +287,7 @@ public class ProductsController : ControllerBase
         [FromQuery] string? sortBy,
         [FromQuery] bool isAscending = true)
     {
-        var products = await _productService.SearchProductsAsync(name, minPrice, maxPrice, vendorId, minRating, maxRating, sortBy, isAscending);
+        var products = await _productService.SearchProductsAsync(name, author, minPrice, maxPrice, vendorId, minRating, maxRating, sortBy, isAscending);
         return Ok(products);
     }
 }

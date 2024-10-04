@@ -17,6 +17,7 @@ public class Product
     public string? ImageUrl { get; set; }
     public Category Category { get; set; }
     public User Vendor { get; set; }
+    public string? Author { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
