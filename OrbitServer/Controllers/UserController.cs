@@ -116,7 +116,7 @@ public class UserController : ControllerBase
 
         if (user.ApproveStatus == false)
         {
-            return StatusCode(403, "Waiting for account activation by CSR... Try again later");
+            return StatusCode(401, "Waiting for account activation by CSR... Try again later");
         }
 
         return Ok(user);
