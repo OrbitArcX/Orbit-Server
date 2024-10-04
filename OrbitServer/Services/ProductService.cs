@@ -51,6 +51,7 @@ public class ProductService
     // Product search with sorting by price and vendor rating
     public async Task<List<Product>> SearchProductsAsync(
         string? name,
+        string? author,
         decimal? minPrice,
         decimal? maxPrice,
         string? vendorId,
@@ -65,6 +66,12 @@ public class ProductService
         if (!string.IsNullOrEmpty(name))
         {
             filter &= Builders<Product>.Filter.Regex(p => p.Name, new BsonRegularExpression(name, "i"));
+        }
+
+        // Filter by author (case insensitive)
+        if (!string.IsNullOrEmpty(author))
+        {
+            filter &= Builders<Product>.Filter.Regex(p => p.Author, new BsonRegularExpression(author, "i"));
         }
 
         // Filter by price range
