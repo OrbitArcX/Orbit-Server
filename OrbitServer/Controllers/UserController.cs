@@ -106,17 +106,17 @@ public class UserController : ControllerBase
 
         if (user.Status == false)
         {
-            return StatusCode(401, "User account is deactivated");
+            return StatusCode(400, "User account is deactivated");
         }
 
         if (user.Password != loginDto.Password)
         {
-            return StatusCode(401, "Incorrect Password");
+            return StatusCode(400, "Incorrect Password");
         }
 
         if (user.ApproveStatus == false)
         {
-            return StatusCode(401, "Waiting for account activation by CSR... Try again later");
+            return StatusCode(400, "Waiting for account activation by CSR... Try again later");
         }
 
         return Ok(user);
