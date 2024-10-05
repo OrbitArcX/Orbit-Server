@@ -12,7 +12,7 @@ public class User
 
     public string Email { get; set; }
     public string Name { get; set; }
-    public string Password { get; set; }
+    public string? Password { get; set; }
     public string Role { get; set; }  // Admin, Vendor, CSR, Customer
     public bool Status { get; set; }
     public bool ApproveStatus { get; set; }
