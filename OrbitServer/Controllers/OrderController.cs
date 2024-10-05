@@ -80,6 +80,12 @@ public class OrderController : ControllerBase
             return BadRequest("Customer does not exist");
         }
 
+        var customerCart = await _orderService.GetCartByCustomerIdAsync(customer.Id);
+        if (customerCart != null)
+        {
+            return BadRequest("Customer already has items in shopping cart");
+        }
+
         foreach (CartItem cartItem in cart.CartItems)
         {
             if (cartItem.Product == null || cartItem.Product.Id == null)
