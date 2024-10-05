@@ -404,6 +404,46 @@ public class OrderController : ControllerBase
         return Ok(existingOrder);
     }
 
+    // CSR cancel order
+    [HttpPut("csr/cancel/{id}")]
+    public async Task<IActionResult> CsrCancelOrderRequest(string id, [FromQuery, Required] string cancelReason)
+    {
+        var existingOrder = await _orderService.GetOrderByIdAsync(id);
+        if (existingOrder == null)
+        {
+            return NotFound();
+        }
+
+        existingOrder.Status = OrderStatus.Cancelled;
+        existingOrder.CsrCancelReason = cancelReason;
+
+        {
+            var notification = new Notification
+            {
+                Title = $"Order: {existingOrder.Id} is Cancelled",
+                Body = $"Order: {existingOrder.Id} is cancelled due to the customer reason given as: {existingOrder.CancelReason}. CSR feedback: {existingOrder.CsrCancelReason}",
+                User = existingOrder.Customer,
+                SeenStatus = false,
+            };
+
+            await _notificationService.CreateNotificationAsync(notification);
+
+            foreach (OrderItem orderItem in existingOrder.OrderItems)
+            {
+                var dbOrderItem = await _orderService.GetOrderItemByIdAsync(orderItem.Id);
+                dbOrderItem.Status = OrderStatus.Cancelled;
+                dbOrderItem.UpdatedAt = DateTime.Now;
+                await _orderService.UpdateOrderItemAsync(dbOrderItem.Id, dbOrderItem);
+            }
+
+        }
+
+        existingOrder.UpdatedAt = DateTime.Now;
+        await _orderService.UpdateOrderAsync(id, existingOrder);
+
+        return Ok(existingOrder);
+    }
+
     // Get all cancel request orders
     [HttpGet("cancel/requests")]
     public async Task<IActionResult> GetCancelRequestOrders()
