@@ -127,6 +127,11 @@ public class OrderController : ControllerBase
             }
         }
 
+        if (cart.Address != null)
+        {
+            existingCart.Address = cart.Address;
+        }
+
         existingCart.CartItems = cart.CartItems;
         existingCart.CartPrice = cart.CartPrice;
 
@@ -285,6 +290,11 @@ public class OrderController : ControllerBase
             Status = OrderStatus.Pending,
         };
 
+        if (cart.Address != null)
+        {
+            order.Address = cart.Address;
+        }
+
         await _orderService.CreateOrderAsync(order);
 
         foreach (OrderItem dbOrderItem in order.OrderItems)
@@ -297,6 +307,76 @@ public class OrderController : ControllerBase
         await _orderService.DeleteCartAsync(cart.Id);
 
         return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
+    }
+
+    // Update an existing order
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateOrder(string id, [FromBody] Order order)
+    {
+        var existingOrder = await _orderService.GetOrderByIdAsync(id);
+        if (existingOrder == null)
+        {
+            return NotFound();
+        }
+
+        if (order.Status != null && order.Status != existingOrder.Status)
+        {
+
+            existingOrder.Status = order.Status;
+
+            if (order.Status == OrderStatus.Delivered)
+            {
+                var notification = new Notification
+                {
+                    Title = $"Order: {existingOrder.Id} is Delivered",
+                    Body = $"Order: {existingOrder.Id} is delivered. Thank you for shopping with us!",
+                    User = existingOrder.Customer,
+                    SeenStatus = false,
+                };
+
+                await _notificationService.CreateNotificationAsync(notification);
+
+                foreach (OrderItem orderItem in existingOrder.OrderItems)
+                {
+                    var deliveredOrderItem = await _orderService.GetOrderItemByIdAsync(orderItem.Id);
+                    deliveredOrderItem.Status = OrderStatus.Delivered;
+                    deliveredOrderItem.UpdatedAt = DateTime.Now;
+                    await _orderService.UpdateOrderItemAsync(deliveredOrderItem.Id, deliveredOrderItem);
+                }
+            }
+
+            if (order.Status == OrderStatus.Cancelled)
+            {
+                var notification = new Notification
+                {
+                    Title = $"Order: {existingOrder.Id} is Cancelled",
+                    Body = $"Order: {existingOrder.Id} is cancelled due to the reason given as: {existingOrder.CancelReason}",
+                    User = existingOrder.Customer,
+                    SeenStatus = false,
+                };
+
+                await _notificationService.CreateNotificationAsync(notification);
+
+                foreach (OrderItem orderItem in existingOrder.OrderItems)
+                {
+                    var dbOrderItem = await _orderService.GetOrderItemByIdAsync(orderItem.Id);
+                    dbOrderItem.Status = OrderStatus.Cancelled;
+                    dbOrderItem.UpdatedAt = DateTime.Now;
+                    await _orderService.UpdateOrderItemAsync(dbOrderItem.Id, dbOrderItem);
+                }
+
+            }
+        }
+
+        if (order.Address != null)
+        {
+            existingOrder.Address = order.Address;
+        }
+
+        existingOrder.UpdatedAt = DateTime.Now;
+        await _orderService.UpdateOrderAsync(id, existingOrder);
+
+        return Ok(existingOrder);
     }
 
     // Update an existing order status

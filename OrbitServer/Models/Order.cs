@@ -16,6 +16,7 @@ public class Order
     public bool CancelRequest { get; set; }
     public string? CancelReason { get; set; }
     public string? CsrCancelReason { get; set; }
+    public string? Address { get; set; }
 
     [BsonRepresentation(BsonType.String)]
     public OrderStatus? Status { get; set; }
