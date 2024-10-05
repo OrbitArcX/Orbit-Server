@@ -70,6 +70,11 @@ public class UserController : ControllerBase
             user.ApproveStatus = true;
         }
 
+        if (user.Password == null)
+        {
+            return BadRequest("Please provide a password");
+        }
+
         user.Status = true;
         await _userService.CreateUserAsync(user);
 
@@ -89,6 +94,11 @@ public class UserController : ControllerBase
         existingUser.Status = user.Status;
         existingUser.ApproveStatus = user.ApproveStatus;
         existingUser.Name = user.Name;
+
+        if (user.Password != null)
+        {
+            existingUser.Password = user.Password;
+        }
 
         existingUser.UpdatedAt = DateTime.Now;
         await _userService.UpdateUserAsync(id, existingUser);
