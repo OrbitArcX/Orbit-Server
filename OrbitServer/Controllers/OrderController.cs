@@ -325,6 +325,14 @@ public class OrderController : ControllerBase
             };
 
             await _notificationService.CreateNotificationAsync(notification);
+
+            foreach (OrderItem orderItem in existingOrder.OrderItems)
+            {
+                var deliveredOrderItem = await _orderService.GetOrderItemByIdAsync(orderItem.Id);
+                deliveredOrderItem.Status = OrderStatus.Delivered;
+                deliveredOrderItem.UpdatedAt = DateTime.Now;
+                await _orderService.UpdateOrderItemAsync(deliveredOrderItem.Id, deliveredOrderItem);
+            }
         }
 
         if (status == OrderStatus.Cancelled)
