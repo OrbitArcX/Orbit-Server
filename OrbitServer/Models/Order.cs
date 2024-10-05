@@ -15,6 +15,7 @@ public class Order
     public decimal OrderPrice { get; set; }
     public bool CancelRequest { get; set; }
     public string? CancelReason { get; set; }
+    public string? CsrCancelReason { get; set; }
 
     [BsonRepresentation(BsonType.String)]
     public OrderStatus? Status { get; set; }
