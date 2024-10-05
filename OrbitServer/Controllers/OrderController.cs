@@ -384,6 +384,20 @@ public class OrderController : ControllerBase
         existingOrder.CancelRequest = true;
         existingOrder.CancelReason = cancelReason;
 
+        var csrUsers = await _userService.GetUsersByRoleAsync("CSR");
+        foreach (User csr in csrUsers)
+        {
+            var notification = new Notification
+            {
+                Title = $"Order cancel request for Order: {existingOrder.Id}",
+                Body = $"Order: {existingOrder.Id} is requested to be cancelled due to the reason given as: {existingOrder.CancelReason}",
+                User = csr,
+                SeenStatus = false,
+            };
+
+            await _notificationService.CreateNotificationAsync(notification);
+        }
+
         existingOrder.UpdatedAt = DateTime.Now;
         await _orderService.UpdateOrderAsync(id, existingOrder);
 
