@@ -69,7 +69,11 @@ public class ProductService
         // Filter by name (case insensitive)
         if (!string.IsNullOrEmpty(name))
         {
-            filter &= Builders<Product>.Filter.Regex(p => p.Name, new BsonRegularExpression(name, "i"));
+            var nameFilter = Builders<Product>.Filter.Regex(p => p.Name, new BsonRegularExpression(name, "i"));
+            var authorFilter = Builders<Product>.Filter.Regex(p => p.Author, new BsonRegularExpression(name, "i"));
+            var categoryNameFilter = Builders<Product>.Filter.Regex(p => p.Category.Name, new BsonRegularExpression(name, "i"));
+
+            filter &= Builders<Product>.Filter.Or(nameFilter, authorFilter, categoryNameFilter);
         }
 
         // Filter by author (case insensitive)
