@@ -66,7 +66,7 @@ public class ProductService
     {
         var filter = Builders<Product>.Filter.Empty;
 
-        // Filter by name (case insensitive)
+        // Filter by name. author, category name (case insensitive)
         if (!string.IsNullOrEmpty(name))
         {
             var nameFilter = Builders<Product>.Filter.Regex(p => p.Name, new BsonRegularExpression(name, "i"));
