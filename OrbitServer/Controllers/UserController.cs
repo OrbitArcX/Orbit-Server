@@ -47,6 +47,15 @@ public class UserController : ControllerBase
             return BadRequest("User data is missing.");
         }
 
+        if (user.Email != null)
+        {
+            var existingUser = await _userService.GetUserByEmailAsync(user.Email);
+            if (existingUser != null)
+            {
+                return BadRequest($"User email: {user.Email} already exists in the system");
+            }
+        }
+
         if (user.Role == "Customer")
         {
             user.ApproveStatus = false;
