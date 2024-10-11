@@ -163,6 +163,14 @@ public class OrderController : ControllerBase
         return Ok(orders);
     }
 
+    // Get all orders by status
+    [HttpGet("pending")]
+    public async Task<IActionResult> GetOrdersByPendingStatus()
+    {
+        var orders = await _orderService.GetOrdersByStatusAsync(OrderStatus.Pending);
+        return Ok(orders);
+    }
+
     // Get order by id
     [HttpGet("{id}")]
     public async Task<IActionResult> GetOrder(string id)
@@ -500,6 +508,11 @@ public class OrderController : ControllerBase
         if (existingOrder == null)
         {
             return NotFound();
+        }
+
+        if (existingOrder.Status != OrderStatus.Pending)
+        {
+            return BadRequest($"Cannot cancel the order as the order is in {existingOrder.Status}");
         }
 
         existingOrder.Status = OrderStatus.Cancelled;
