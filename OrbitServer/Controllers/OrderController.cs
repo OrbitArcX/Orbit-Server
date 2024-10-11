@@ -163,6 +163,14 @@ public class OrderController : ControllerBase
         return Ok(orders);
     }
 
+    // Get all orders by status
+    [HttpGet("pending")]
+    public async Task<IActionResult> GetOrdersByPendingStatus()
+    {
+        var orders = await _orderService.GetOrdersByStatusAsync(OrderStatus.Pending);
+        return Ok(orders);
+    }
+
     // Get order by id
     [HttpGet("{id}")]
     public async Task<IActionResult> GetOrder(string id)
