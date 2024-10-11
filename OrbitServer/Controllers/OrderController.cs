@@ -586,6 +586,11 @@ public class OrderController : ControllerBase
         var order = await _orderService.GetOrderByIdAsync(existingOrderItem.OrderId);
         bool isDelivered = true;
 
+        if (status == OrderStatus.Dispatched)
+        {
+            isDelivered = false;
+        }
+
         if (status == OrderStatus.Delivered)
         {
             var notification = new Notification
