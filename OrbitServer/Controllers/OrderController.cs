@@ -502,6 +502,11 @@ public class OrderController : ControllerBase
             return NotFound();
         }
 
+        if (existingOrder.Status != OrderStatus.Pending)
+        {
+            return BadRequest($"Cannot cancel the order as the order is in {existingOrder.Status}");
+        }
+
         existingOrder.Status = OrderStatus.Cancelled;
         existingOrder.CsrCancelReason = cancelReason;
 
